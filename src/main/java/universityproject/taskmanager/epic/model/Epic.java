@@ -1,19 +1,17 @@
 package universityproject.taskmanager.epic.model;
 
-
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.*;
 import universityproject.taskmanager.project.model.Project;
 
-import java.util.UUID;
-
 @Entity
-@Table(name = "EPIC")
+@Table(name = "task_manager_epic")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Epic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

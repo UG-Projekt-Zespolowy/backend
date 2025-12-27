@@ -1,6 +1,8 @@
 package universityproject.taskmanager.user.dto;
 
-public record CreateUserRequest (
-    String name,
-    String username
-){}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record CreateUserRequest(
+        @NotBlank(message = "Name must not be blank") @Size(max = 100) String name,
+        @NotBlank(message = "Username must not be blank") @Size(min = 3, max = 50) String username) {}

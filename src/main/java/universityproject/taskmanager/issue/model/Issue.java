@@ -1,22 +1,22 @@
 package universityproject.taskmanager.issue.model;
 
-
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 import universityproject.taskmanager.epic.model.Epic;
 import universityproject.taskmanager.issue.enums.IssueStatus;
 import universityproject.taskmanager.user.model.User;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Entity
-@Table(name = "ISSUE")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "task_manager_issue")
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Issue {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -30,9 +30,10 @@ public class Issue {
     @Column(name = "story_point")
     private Integer storyPoint;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private IssueStatus status;
+    private IssueStatus status = IssueStatus.TO_DO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
@@ -46,14 +47,11 @@ public class Issue {
     @JoinColumn(name = "epic_id")
     private Epic epic;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
-            status = IssueStatus.TO_DO;
-        }
     }
 }

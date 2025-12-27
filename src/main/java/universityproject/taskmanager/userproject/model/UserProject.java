@@ -1,25 +1,24 @@
 package universityproject.taskmanager.userproject.model;
 
+import static java.util.Objects.isNull;
+
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 import universityproject.taskmanager.project.enums.ProjectRole;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.user.model.User;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Entity
 @Table(
-        name = "USER_PROJECT",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "project_id"})
-        }
-)
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+        name = "task_manager_user_project",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "project_id"})})
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class UserProject {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,7 +45,7 @@ public class UserProject {
     @PrePersist
     protected void onCreate() {
         joinedAt = LocalDateTime.now();
-        if (isOwner == null) {
+        if (isNull(isOwner)) {
             isOwner = false;
         }
     }
