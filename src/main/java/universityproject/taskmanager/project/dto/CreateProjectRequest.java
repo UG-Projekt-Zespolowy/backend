@@ -7,5 +7,6 @@ import java.util.UUID;
 
 public record CreateProjectRequest(
         @NotBlank(message = "Project name must not be blank") @Size(max = 100) String name,
+
         @Size(max = 1000) String description,
         @NotNull(message = "Owner id must not be null") UUID ownerId) {}

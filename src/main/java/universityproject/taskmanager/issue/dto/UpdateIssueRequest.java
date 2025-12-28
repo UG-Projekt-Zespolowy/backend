@@ -9,7 +9,10 @@ import universityproject.taskmanager.issue.enums.IssueStatus;
 
 public record UpdateIssueRequest(
         @NotBlank(message = "Title must not be blank") @Size(max = 200) String title,
+
         @Size(max = 2000) String description,
+
         @PositiveOrZero(message = "Story point must be zero or positive") Integer storyPoint,
+
         @NotNull(message = "Issue status must not be null") IssueStatus status,
         UUID assigneeId) {}
