@@ -1,0 +1,22 @@
+meta {
+  name: UpdateUserRole
+  type: http
+  seq: 12
+}
+
+patch {
+  url: http://localhost:8080/api/v1/user-projects/projects/{{projectId}}/users/{{userId}}/role
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "role": "PROJECT_MANAGER"
+  }
+}
+
+vars:pre-request {
+  projectId: replace-with-actual-uuid
+  userId: replace-with-actual-uuid
+}

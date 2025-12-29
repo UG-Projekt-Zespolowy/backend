@@ -1,0 +1,28 @@
+meta {
+  name: CreateIssue
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/api/v1/issues
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Implement JWT Filter",
+    "description": "Create a security filter to validate JWT tokens in the request header",
+    "storyPoint": 5,
+    "reporterId": "{{reporterId}}",
+  //   "assigneeId": "{{assigneeId}}",
+    "epicId": "{{epicId}}"
+  }
+}
+
+vars:pre-request {
+  reporterId: replace-with-uuid
+  epicId: replace-with-uuid
+  ~assigneeId: replace-with-user-uuid
+}

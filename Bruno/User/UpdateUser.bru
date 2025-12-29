@@ -1,0 +1,22 @@
+meta {
+  name: UpdateUser
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:8080/api/v1/users/{{userId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "John Doe Updated",
+    "username": "johndoe_updated"
+  }
+}
+
+vars:pre-request {
+  userId: replace-with-actual-uuid
+}
