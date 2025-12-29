@@ -12,6 +12,8 @@ import universityproject.taskmanager.epic.repository.EpicRepository;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.repository.ProjectRepository;
 
+import static java.util.Objects.nonNull;
+
 @Service
 @RequiredArgsConstructor
 public class EpicServiceDefault implements EpicService {
@@ -44,11 +46,11 @@ public class EpicServiceDefault implements EpicService {
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic with id " + epicId + " not found"));
 
-        if (title != null) {
+        if (nonNull(title)) {
             epic.setTitle(title);
         }
 
-        if (description != null) {
+        if (nonNull(description)) {
             epic.setDescription(description);
         }
 

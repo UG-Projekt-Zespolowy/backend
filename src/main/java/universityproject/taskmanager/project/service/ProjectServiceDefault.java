@@ -16,6 +16,8 @@ import universityproject.taskmanager.user.repository.UserRepository;
 import universityproject.taskmanager.userproject.model.UserProject;
 import universityproject.taskmanager.userproject.repository.UserProjectRepository;
 
+import static java.util.Objects.nonNull;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceDefault implements ProjectService {
@@ -56,11 +58,11 @@ public class ProjectServiceDefault implements ProjectService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found"));
 
-        if (name != null) {
+        if (nonNull(name)) {
             project.setName(name);
         }
 
-        if (description != null) {
+        if (nonNull(description)) {
             project.setDescription(description);
         }
 

@@ -16,6 +16,8 @@ import universityproject.taskmanager.project.repository.ProjectRepository;
 import universityproject.taskmanager.user.model.User;
 import universityproject.taskmanager.user.repository.UserRepository;
 
+import static java.util.Objects.nonNull;
+
 @Service
 @RequiredArgsConstructor
 public class IssueServiceDefault implements IssueService {
@@ -41,14 +43,14 @@ public class IssueServiceDefault implements IssueService {
                 .reporter(reporter)
                 .build();
 
-        if (assigneeId != null) {
+        if (nonNull(assigneeId)) {
             User assignee = userRepository
                     .findById(assigneeId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
             issue.setAssignee(assignee);
         }
 
-        if (epicId != null) {
+        if (nonNull(epicId)) {
             Epic epic = epicRepository
                     .findById(epicId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic not found"));
@@ -71,7 +73,7 @@ public class IssueServiceDefault implements IssueService {
         issue.setStoryPoint(storyPoint);
         issue.setStatus(status);
 
-        if (assigneeId != null) {
+        if (nonNull(assigneeId)) {
             User assignee = userRepository
                     .findById(assigneeId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
@@ -100,7 +102,7 @@ public class IssueServiceDefault implements IssueService {
                 .findById(issueId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found"));
 
-        if (assigneeId != null) {
+        if (nonNull(assigneeId)) {
             User assignee = userRepository
                     .findById(assigneeId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
