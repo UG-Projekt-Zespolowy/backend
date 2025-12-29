@@ -1,5 +1,6 @@
 package universityproject.taskmanager.epic.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.*;
@@ -12,6 +13,7 @@ import universityproject.taskmanager.project.model.Project;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Epic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,7 +25,7 @@ public class Epic {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 }
