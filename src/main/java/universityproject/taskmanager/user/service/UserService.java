@@ -1,14 +1,17 @@
 package universityproject.taskmanager.user.service;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import universityproject.taskmanager.user.dto.CreateUserRequest;
+import universityproject.taskmanager.user.dto.UpdateUserRequest;
 import universityproject.taskmanager.user.model.User;
 
 public interface UserService {
 
-    User createUser(String name, String keycloakId, String username);
+    User createUser(CreateUserRequest request);
 
-    User updateUser(UUID id, String name, String keycloakId, String username);
+    User updateUser(UUID id, UpdateUserRequest request);
 
     void deleteUser(UUID id);
 
@@ -16,5 +19,5 @@ public interface UserService {
 
     User getUserByUsername(String username);
 
-    List<User> getAllUsers();
+    Page<User> getAllUsers(Pageable pageable);
 }

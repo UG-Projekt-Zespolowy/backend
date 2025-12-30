@@ -1,14 +1,15 @@
 package universityproject.taskmanager.user.service;
 
-import static java.util.Objects.nonNull;
-
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import universityproject.taskmanager.exception.UserConflictException;
+import universityproject.taskmanager.exception.UserNotFoundException;
+import universityproject.taskmanager.user.dto.CreateUserRequest;
+import universityproject.taskmanager.user.dto.UpdateUserRequest;
 import universityproject.taskmanager.user.model.User;
 import universityproject.taskmanager.user.repository.UserRepository;
 
@@ -20,18 +21,18 @@ public class UserServiceDefault implements UserService {
 
     @Override
     @Transactional
-    public User createUser(String name, String keycloakId, String username) {
-        if (userRepository.existsByUsername(username)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists");
+    public User createUser(CreateUserRequest request) {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new UserConflictException("Username " + request.username() + " already exists");
         }
-        if (userRepository.existsByKeycloakId(keycloakId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Keycloak ID " + keycloakId + " already exists");
+        if (userRepository.existsByKeycloakId(request.keycloakId())) {
+            throw new UserConflictException("Keycloak ID " + request.keycloakId() + " already exists");
         }
 
         User user = User.builder()
-                .name(name)
-                .keycloakId(keycloakId)
-                .username(username)
+                .name(request.name())
+                .keycloakId(request.keycloakId())
+                .username(request.username())
                 .build();
 
         return userRepository.save(user);
@@ -39,25 +40,22 @@ public class UserServiceDefault implements UserService {
 
     @Override
     @Transactional
-    public User updateUser(UUID id, String name, String keycloakId, String username) {
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + id + " not found"));
+    public User updateUser(UUID id, UpdateUserRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-        if (nonNull(name)) {
-            user.setName(name);
+        if (request.name() != null && !request.name().isBlank()) {
+            user.setName(request.name());
         }
 
-        if (nonNull(keycloakId)) {
-            user.setKeycloakId(keycloakId);
+        if (request.keycloakId() != null && !request.keycloakId().isBlank()) {
+            user.setKeycloakId(request.keycloakId());
         }
 
-        if (nonNull(username)) {
-            if (!user.getUsername().equals(username) && userRepository.existsByUsername(username)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " already exists");
+        if (request.username() != null && !request.username().isBlank()) {
+            if (!user.getUsername().equals(request.username()) && userRepository.existsByUsername(request.username())) {
+                throw new UserConflictException("Username " + request.username() + " already exists");
             }
-            user.setUsername(username);
+            user.setUsername(request.username());
         }
 
         return userRepository.save(user);
@@ -66,30 +64,22 @@ public class UserServiceDefault implements UserService {
     @Override
     @Transactional
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + id + " not found");
-        }
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(user);
     }
 
     @Override
     public User getUserById(UUID id) {
-        return userRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + id + " not found"));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     public User getUserByUsername(String username) {
-        return userRepository
-                .findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "User with username " + username + " not found"));
+        return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 }
