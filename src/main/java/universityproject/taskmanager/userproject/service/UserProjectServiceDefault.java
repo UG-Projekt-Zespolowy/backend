@@ -1,14 +1,12 @@
 package universityproject.taskmanager.userproject.service;
 
-import static java.util.Objects.nonNull;
-
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import universityproject.taskmanager.exception.*;
 import universityproject.taskmanager.project.enums.ProjectRole;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.repository.ProjectRepository;
@@ -19,6 +17,7 @@ import universityproject.taskmanager.userproject.repository.UserProjectRepositor
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserProjectServiceDefault implements UserProjectService {
 
     private final UserProjectRepository userProjectRepository;
@@ -26,86 +25,76 @@ public class UserProjectServiceDefault implements UserProjectService {
     private final ProjectRepository projectRepository;
 
     @Override
-    @Transactional
     public UserProject addUserToProject(UUID userId, UUID projectId, ProjectRole role, Boolean isOwner) {
-        User user = userRepository
-                .findById(userId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + userId + " not found"));
 
-        Project project = projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        Project project =
+                projectRepository.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
 
         if (userProjectRepository.existsByUserIdAndProjectId(userId, projectId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already a member of this project");
+            throw new UserAlreadyInProjectException(userId, projectId);
         }
 
-        UserProject userProject = UserProject.builder()
+        return userProjectRepository.save(UserProject.builder()
                 .user(user)
                 .project(project)
                 .role(role)
-                .isOwner(nonNull(isOwner) && isOwner)
-                .build();
-
-        return userProjectRepository.save(userProject);
+                .isOwner(Boolean.TRUE.equals(isOwner))
+                .build());
     }
 
     @Override
-    @Transactional
     public UserProject updateUserRole(UUID userId, UUID projectId, ProjectRole role) {
         UserProject userProject = userProjectRepository
                 .findByUserIdAndProjectId(userId, projectId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not a member of this project"));
+                .orElseThrow(() -> new UserProjectNotFoundException(userId, projectId));
 
         userProject.setRole(role);
-        return userProjectRepository.save(userProject);
+        return userProject;
     }
 
     @Override
-    @Transactional
     public void removeUserFromProject(UUID userId, UUID projectId) {
         UserProject userProject = userProjectRepository
                 .findByUserIdAndProjectId(userId, projectId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not a member of this project"));
+                .orElseThrow(() -> new UserProjectNotFoundException(userId, projectId));
 
         if (userProject.getIsOwner()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot remove project owner");
+            throw new CannotRemoveProjectOwnerException();
         }
 
         userProjectRepository.delete(userProject);
     }
 
     @Override
-    public List<UserProject> getProjectMembers(UUID projectId) {
+    @Transactional(readOnly = true)
+    public Page<UserProject> getProjectMembers(UUID projectId, Pageable pageable) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found");
+            throw new ProjectNotFoundException(projectId);
         }
-
-        return userProjectRepository.findByProjectId(projectId);
+        return userProjectRepository.findByProjectId(projectId, pageable);
     }
 
     @Override
-    public List<UserProject> getUserProjects(UUID userId) {
+    @Transactional(readOnly = true)
+    public Page<UserProject> getUserProjects(UUID userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + userId + " not found");
+            throw new UserNotFoundException(userId);
         }
-
-        return userProjectRepository.findByUserId(userId);
+        return userProjectRepository.findByUserId(userId, pageable);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserProject getProjectOwner(UUID projectId) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found");
+            throw new ProjectNotFoundException(projectId);
         }
 
         return userProjectRepository
                 .findByProjectIdAndIsOwnerTrue(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project owner not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Project owner not found"));
     }
 
     @Override
@@ -116,7 +105,8 @@ public class UserProjectServiceDefault implements UserProjectService {
     @Override
     public boolean isUserOwner(UUID userId, UUID projectId) {
         return userProjectRepository
-                .findByUserIdAndProjectIdAndIsOwnerTrue(userId, projectId)
-                .isPresent();
+                .findByUserIdAndProjectId(userId, projectId)
+                .map(UserProject::getIsOwner)
+                .orElse(false);
     }
 }

@@ -1,7 +1,8 @@
 package universityproject.taskmanager.userproject.service;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import universityproject.taskmanager.project.enums.ProjectRole;
 import universityproject.taskmanager.userproject.model.UserProject;
 
@@ -13,9 +14,9 @@ public interface UserProjectService {
 
     void removeUserFromProject(UUID userId, UUID projectId);
 
-    List<UserProject> getProjectMembers(UUID projectId);
+    Page<UserProject> getProjectMembers(UUID projectId, Pageable pageable);
 
-    List<UserProject> getUserProjects(UUID userId);
+    Page<UserProject> getUserProjects(UUID userId, Pageable pageable);
 
     UserProject getProjectOwner(UUID projectId);
 
