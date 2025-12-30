@@ -1,7 +1,8 @@
 package universityproject.taskmanager.project.service;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import universityproject.taskmanager.project.model.Project;
 
 public interface ProjectService {
@@ -14,7 +15,7 @@ public interface ProjectService {
 
     Project getProjectById(UUID projectId);
 
-    List<Project> getAllProjects();
+    Page<Project> getAllProjects(Pageable pageable);
 
-    List<Project> getUserProjects(UUID userId);
+    Page<Project> getUserProjects(UUID userId, Pageable pageable);
 }

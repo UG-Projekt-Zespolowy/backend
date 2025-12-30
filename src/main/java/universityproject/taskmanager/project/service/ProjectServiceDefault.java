@@ -2,14 +2,14 @@ package universityproject.taskmanager.project.service;
 
 import static java.util.Objects.nonNull;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import universityproject.taskmanager.exception.ProjectNotFoundException;
+import universityproject.taskmanager.exception.UserNotFoundException;
 import universityproject.taskmanager.project.enums.ProjectRole;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.repository.ProjectRepository;
@@ -20,6 +20,7 @@ import universityproject.taskmanager.userproject.repository.UserProjectRepositor
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProjectServiceDefault implements ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -27,53 +28,42 @@ public class ProjectServiceDefault implements ProjectService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional
     public Project createProject(String name, String description, UUID ownerId) {
-        User owner = userRepository
-                .findById(ownerId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + ownerId + " not found"));
+        User owner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
 
         Project project = Project.builder().name(name).description(description).build();
 
-        project = projectRepository.save(project);
+        projectRepository.save(project);
 
-        UserProject userProject = UserProject.builder()
+        userProjectRepository.save(UserProject.builder()
                 .user(owner)
                 .project(project)
                 .role(ProjectRole.PROJECT_MANAGER)
                 .isOwner(true)
-                .build();
-
-        userProjectRepository.save(userProject);
+                .build());
 
         return project;
     }
 
     @Override
-    @Transactional
     public Project updateProject(UUID projectId, String name, String description) {
-        Project project = projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found"));
+        Project project =
+                projectRepository.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
 
         if (nonNull(name)) {
             project.setName(name);
         }
-
         if (nonNull(description)) {
             project.setDescription(description);
         }
 
-        return projectRepository.save(project);
+        return project;
     }
 
     @Override
-    @Transactional
     public void deleteProject(UUID projectId) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found");
+            throw new ProjectNotFoundException(projectId);
         }
 
         userProjectRepository.deleteByProjectId(projectId);
@@ -81,26 +71,24 @@ public class ProjectServiceDefault implements ProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Project getProjectById(UUID projectId) {
-        return projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found"));
+        return projectRepository.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
     }
 
     @Override
-    public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+    @Transactional(readOnly = true)
+    public Page<Project> getAllProjects(Pageable pageable) {
+        return projectRepository.findAll(pageable);
     }
 
     @Override
-    public List<Project> getUserProjects(UUID userId) {
+    @Transactional(readOnly = true)
+    public Page<Project> getUserProjects(UUID userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + userId + " not found");
+            throw new UserNotFoundException(userId);
         }
 
-        return userProjectRepository.findByUserId(userId).stream()
-                .map(UserProject::getProject)
-                .collect(Collectors.toList());
+        return userProjectRepository.findByUserId(userId, pageable).map(UserProject::getProject);
     }
 }

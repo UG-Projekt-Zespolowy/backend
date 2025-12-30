@@ -1,14 +1,17 @@
 package universityproject.taskmanager.project.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import universityproject.taskmanager.project.dto.CreateProjectRequest;
+import universityproject.taskmanager.project.dto.ProjectResponse;
 import universityproject.taskmanager.project.dto.UpdateProjectRequest;
+import universityproject.taskmanager.project.mapper.ProjectMapper;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.service.ProjectService;
 
@@ -20,34 +23,36 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping
-    public ResponseEntity<Project> createProject(@Valid @RequestBody CreateProjectRequest request) {
+    public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody CreateProjectRequest request) {
+
         Project project = projectService.createProject(request.name(), request.description(), request.ownerId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(project);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectMapper.toResponse(project));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable UUID id) {
-        Project project = projectService.getProjectById(id);
-        return ResponseEntity.ok(project);
+    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ProjectMapper.toResponse(projectService.getProjectById(id)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Project>> getAllProjects() {
-        List<Project> projects = projectService.getAllProjects();
-        return ResponseEntity.ok(projects);
+    public ResponseEntity<Page<ProjectResponse>> getAllProjects(Pageable pageable) {
+        return ResponseEntity.ok(projectService.getAllProjects(pageable).map(ProjectMapper::toResponse));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Project>> getUserProjects(@PathVariable UUID userId) {
-        List<Project> projects = projectService.getUserProjects(userId);
-        return ResponseEntity.ok(projects);
+    public ResponseEntity<Page<ProjectResponse>> getUserProjects(@PathVariable UUID userId, Pageable pageable) {
+
+        return ResponseEntity.ok(
+                projectService.getUserProjects(userId, pageable).map(ProjectMapper::toResponse));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(
+    public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable UUID id, @Valid @RequestBody UpdateProjectRequest request) {
-        Project project = projectService.updateProject(id, request.name(), request.description());
-        return ResponseEntity.ok(project);
+
+        return ResponseEntity.ok(
+                ProjectMapper.toResponse(projectService.updateProject(id, request.name(), request.description())));
     }
 
     @DeleteMapping("/{id}")
