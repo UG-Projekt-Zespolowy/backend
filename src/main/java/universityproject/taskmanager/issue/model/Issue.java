@@ -1,6 +1,5 @@
 package universityproject.taskmanager.issue.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,7 +15,6 @@ import universityproject.taskmanager.user.model.User;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Issue {
 
     @Id

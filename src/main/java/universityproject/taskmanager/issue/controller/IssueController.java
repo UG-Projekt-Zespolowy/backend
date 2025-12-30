@@ -1,84 +1,74 @@
 package universityproject.taskmanager.issue.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import universityproject.taskmanager.issue.dto.AssignIssueRequest;
-import universityproject.taskmanager.issue.dto.CreateIssueRequest;
-import universityproject.taskmanager.issue.dto.UpdateIssueRequest;
-import universityproject.taskmanager.issue.dto.UpdateIssueStatusRequest;
+import universityproject.taskmanager.issue.dto.*;
+import universityproject.taskmanager.issue.mapper.IssueMapper;
 import universityproject.taskmanager.issue.model.Issue;
 import universityproject.taskmanager.issue.service.IssueService;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/issues")
+@RequiredArgsConstructor
 public class IssueController {
 
     private final IssueService issueService;
 
     @PostMapping
-    public ResponseEntity<Issue> createIssue(@Valid @RequestBody CreateIssueRequest request) {
-        Issue issue = issueService.createIssue(
-                request.title(),
-                request.description(),
-                request.storyPoint(),
-                request.reporterId(),
-                request.assigneeId(),
-                request.epicId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(issue);
+    public ResponseEntity<IssueResponse> createIssue(@Valid @RequestBody CreateIssueRequest request) {
+        Issue issue = issueService.createIssue(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(IssueMapper.toResponse(issue));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Issue> getIssueById(@PathVariable UUID id) {
-        return ResponseEntity.ok(issueService.getIssueById(id));
+    public ResponseEntity<IssueResponse> getIssueById(@PathVariable UUID id) {
+        return ResponseEntity.ok(IssueMapper.toResponse(issueService.getIssueById(id)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Issue>> getAllIssues() {
-        return ResponseEntity.ok(issueService.getAllIssues());
-    }
-
-    @GetMapping("/epic/{epicId}")
-    public ResponseEntity<List<Issue>> getEpicIssues(@PathVariable UUID epicId) {
-        return ResponseEntity.ok(issueService.getEpicIssues(epicId));
+    public ResponseEntity<Page<IssueResponse>> getAllIssues(Pageable pageable) {
+        return ResponseEntity.ok(issueService.getAllIssues(pageable).map(IssueMapper::toResponse));
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<Issue>> getProjectIssues(@PathVariable UUID projectId) {
-        return ResponseEntity.ok(issueService.getProjectIssues(projectId));
+    public ResponseEntity<Page<IssueResponse>> getProjectIssues(@PathVariable UUID projectId, Pageable pageable) {
+        return ResponseEntity.ok(
+                issueService.getProjectIssues(projectId, pageable).map(IssueMapper::toResponse));
+    }
+
+    @GetMapping("/epic/{epicId}")
+    public ResponseEntity<Page<IssueResponse>> getEpicIssues(@PathVariable UUID epicId, Pageable pageable) {
+        return ResponseEntity.ok(issueService.getEpicIssues(epicId, pageable).map(IssueMapper::toResponse));
     }
 
     @GetMapping("/assignee/{userId}")
-    public ResponseEntity<List<Issue>> getUserAssignedIssues(@PathVariable UUID userId) {
-        return ResponseEntity.ok(issueService.getUserAssignedIssues(userId));
+    public ResponseEntity<Page<IssueResponse>> getUserAssignedIssues(@PathVariable UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(
+                issueService.getUserAssignedIssues(userId, pageable).map(IssueMapper::toResponse));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Issue> updateIssue(@PathVariable UUID id, @Valid @RequestBody UpdateIssueRequest request) {
-        Issue issue = issueService.updateIssue(
-                id,
-                request.title(),
-                request.description(),
-                request.storyPoint(),
-                request.status(),
-                request.assigneeId());
-        return ResponseEntity.ok(issue);
+    public ResponseEntity<IssueResponse> updateIssue(
+            @PathVariable UUID id, @Valid @RequestBody UpdateIssueRequest request) {
+        return ResponseEntity.ok(IssueMapper.toResponse(issueService.updateIssue(id, request)));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Issue> updateIssueStatus(
+    public ResponseEntity<IssueResponse> updateStatus(
             @PathVariable UUID id, @Valid @RequestBody UpdateIssueStatusRequest request) {
-        return ResponseEntity.ok(issueService.updateIssueStatus(id, request.status()));
+        return ResponseEntity.ok(IssueMapper.toResponse(issueService.updateIssueStatus(id, request.status())));
     }
 
     @PatchMapping("/{id}/assign")
-    public ResponseEntity<Issue> assignIssue(@PathVariable UUID id, @Valid @RequestBody AssignIssueRequest request) {
-        return ResponseEntity.ok(issueService.assignIssue(id, request.assigneeId()));
+    public ResponseEntity<IssueResponse> assignIssue(
+            @PathVariable UUID id, @Valid @RequestBody AssignIssueRequest request) {
+        return ResponseEntity.ok(IssueMapper.toResponse(issueService.assignIssue(id, request.assigneeId())));
     }
 
     @DeleteMapping("/{id}")

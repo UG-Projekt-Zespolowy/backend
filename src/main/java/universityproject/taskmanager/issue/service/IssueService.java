@@ -1,16 +1,17 @@
 package universityproject.taskmanager.issue.service;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import universityproject.taskmanager.issue.dto.CreateIssueRequest;
+import universityproject.taskmanager.issue.dto.UpdateIssueRequest;
 import universityproject.taskmanager.issue.enums.IssueStatus;
 import universityproject.taskmanager.issue.model.Issue;
 
 public interface IssueService {
-    Issue createIssue(
-            String title, String description, Integer storyPoint, UUID reporterId, UUID assigneeId, UUID epicId);
+    Issue createIssue(CreateIssueRequest request);
 
-    Issue updateIssue(
-            UUID issueId, String title, String description, Integer storyPoint, IssueStatus status, UUID assigneeId);
+    Issue updateIssue(UUID issueId, UpdateIssueRequest request);
 
     Issue updateIssueStatus(UUID issueId, IssueStatus status);
 
@@ -20,15 +21,11 @@ public interface IssueService {
 
     Issue getIssueById(UUID issueId);
 
-    List<Issue> getEpicIssues(UUID epicId);
+    Page<Issue> getAllIssues(Pageable pageable);
 
-    List<Issue> getProjectIssues(UUID projectId);
+    Page<Issue> getProjectIssues(UUID projectId, Pageable pageable);
 
-    List<Issue> getUserAssignedIssues(UUID userId);
+    Page<Issue> getEpicIssues(UUID epicId, Pageable pageable);
 
-    List<Issue> getUserReportedIssues(UUID userId);
-
-    List<Issue> getIssuesByStatus(IssueStatus status);
-
-    List<Issue> getAllIssues();
+    Page<Issue> getUserAssignedIssues(UUID userId, Pageable pageable);
 }

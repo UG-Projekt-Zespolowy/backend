@@ -1,16 +1,16 @@
 package universityproject.taskmanager.issue.service;
 
-import static java.util.Objects.nonNull;
-
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import universityproject.taskmanager.epic.model.Epic;
 import universityproject.taskmanager.epic.repository.EpicRepository;
+import universityproject.taskmanager.exception.IssueNotFoundException;
+import universityproject.taskmanager.exception.ResourceNotFoundException;
+import universityproject.taskmanager.issue.dto.CreateIssueRequest;
+import universityproject.taskmanager.issue.dto.UpdateIssueRequest;
 import universityproject.taskmanager.issue.enums.IssueStatus;
 import universityproject.taskmanager.issue.model.Issue;
 import universityproject.taskmanager.issue.repository.IssueRepository;
@@ -29,32 +29,27 @@ public class IssueServiceDefault implements IssueService {
 
     @Override
     @Transactional
-    public Issue createIssue(
-            String title, String description, Integer storyPoint, UUID reporterId, UUID assigneeId, UUID epicId) {
+    public Issue createIssue(CreateIssueRequest request) {
         User reporter = userRepository
-                .findById(reporterId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporter not found"));
+                .findById(request.reporterId())
+                .orElseThrow(() -> new ResourceNotFoundException("Reporter not found"));
 
         Issue issue = Issue.builder()
-                .title(title)
-                .description(description)
-                .storyPoint(storyPoint)
+                .title(request.title())
+                .description(request.description())
+                .storyPoint(request.storyPoint())
                 .status(IssueStatus.TO_DO)
                 .reporter(reporter)
                 .build();
 
-        if (nonNull(assigneeId)) {
-            User assignee = userRepository
-                    .findById(assigneeId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
-            issue.setAssignee(assignee);
+        if (request.assigneeId() != null) {
+            issue.setAssignee(userRepository.findById(request.assigneeId()).orElse(null));
         }
 
-        if (nonNull(epicId)) {
-            Epic epic = epicRepository
-                    .findById(epicId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic not found"));
-            issue.setEpic(epic);
+        if (request.epicId() != null) {
+            issue.setEpic(epicRepository
+                    .findById(request.epicId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Epic not found")));
         }
 
         return issueRepository.save(issue);
@@ -62,21 +57,20 @@ public class IssueServiceDefault implements IssueService {
 
     @Override
     @Transactional
-    public Issue updateIssue(
-            UUID issueId, String title, String description, Integer storyPoint, IssueStatus status, UUID assigneeId) {
-        Issue issue = issueRepository
-                .findById(issueId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found"));
+    public Issue updateIssue(UUID issueId, UpdateIssueRequest request) {
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
 
-        issue.setTitle(title);
-        issue.setDescription(description);
-        issue.setStoryPoint(storyPoint);
-        issue.setStatus(status);
+        if (request.title() != null && !request.title().isBlank()) {
+            issue.setTitle(request.title());
+        }
+        issue.setDescription(request.description());
+        issue.setStoryPoint(request.storyPoint());
+        issue.setStatus(request.status());
 
-        if (nonNull(assigneeId)) {
+        if (request.assigneeId() != null) {
             User assignee = userRepository
-                    .findById(assigneeId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
+                    .findById(request.assigneeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));
             issue.setAssignee(assignee);
         } else {
             issue.setAssignee(null);
@@ -88,9 +82,7 @@ public class IssueServiceDefault implements IssueService {
     @Override
     @Transactional
     public Issue updateIssueStatus(UUID issueId, IssueStatus status) {
-        Issue issue = issueRepository
-                .findById(issueId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found"));
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
         issue.setStatus(status);
         return issueRepository.save(issue);
     }
@@ -98,71 +90,51 @@ public class IssueServiceDefault implements IssueService {
     @Override
     @Transactional
     public Issue assignIssue(UUID issueId, UUID assigneeId) {
-        Issue issue = issueRepository
-                .findById(issueId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found"));
-
-        if (nonNull(assigneeId)) {
-            User assignee = userRepository
-                    .findById(assigneeId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignee not found"));
-            issue.setAssignee(assignee);
-        } else {
-            issue.setAssignee(null);
-        }
-
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
+        User assignee =
+                userRepository.findById(assigneeId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        issue.setAssignee(assignee);
         return issueRepository.save(issue);
     }
 
     @Override
     @Transactional
     public void deleteIssue(UUID issueId) {
-        if (!issueRepository.existsById(issueId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found");
-        }
-        issueRepository.deleteById(issueId);
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
+        issueRepository.delete(issue);
     }
 
     @Override
     public Issue getIssueById(UUID issueId) {
-        return issueRepository
-                .findById(issueId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Issue not found"));
+        return issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
     }
 
     @Override
-    public List<Issue> getEpicIssues(UUID epicId) {
-        if (!epicRepository.existsById(epicId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic not found");
-        }
-        return issueRepository.findByEpicId(epicId);
+    public Page<Issue> getAllIssues(Pageable pageable) {
+        return issueRepository.findAll(pageable);
     }
 
     @Override
-    public List<Issue> getProjectIssues(UUID projectId) {
+    public Page<Issue> getProjectIssues(UUID projectId, Pageable pageable) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
+            throw new ResourceNotFoundException("Project not found");
         }
-        return issueRepository.findByProjectId(projectId);
+        return issueRepository.findByProjectId(projectId, pageable);
     }
 
     @Override
-    public List<Issue> getUserAssignedIssues(UUID userId) {
-        return issueRepository.findByAssigneeId(userId);
+    public Page<Issue> getEpicIssues(UUID epicId, Pageable pageable) {
+        if (!epicRepository.existsById(epicId)) {
+            throw new ResourceNotFoundException("Epic not found");
+        }
+        return issueRepository.findByEpicId(epicId, pageable);
     }
 
     @Override
-    public List<Issue> getUserReportedIssues(UUID userId) {
-        return issueRepository.findByReporterId(userId);
-    }
-
-    @Override
-    public List<Issue> getIssuesByStatus(IssueStatus status) {
-        return issueRepository.findByStatus(status);
-    }
-
-    @Override
-    public List<Issue> getAllIssues() {
-        return issueRepository.findAll();
+    public Page<Issue> getUserAssignedIssues(UUID userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        return issueRepository.findByAssigneeId(userId, pageable);
     }
 }
