@@ -1,14 +1,17 @@
 package universityproject.taskmanager.epic.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import universityproject.taskmanager.epic.dto.CreateEpicRequest;
+import universityproject.taskmanager.epic.dto.EpicResponse;
 import universityproject.taskmanager.epic.dto.UpdateEpicRequest;
+import universityproject.taskmanager.epic.mapper.EpicMapper;
 import universityproject.taskmanager.epic.model.Epic;
 import universityproject.taskmanager.epic.service.EpicService;
 
@@ -20,33 +23,34 @@ public class EpicController {
     private final EpicService epicService;
 
     @PostMapping
-    public ResponseEntity<Epic> createEpic(@Valid @RequestBody CreateEpicRequest request) {
-        Epic epic = epicService.createEpic(request.title(), request.description(), request.projectId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(epic);
+    public ResponseEntity<EpicResponse> createEpic(@Valid @RequestBody CreateEpicRequest request) {
+        Epic epic = epicService.createEpic(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(EpicMapper.toResponse(epic));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Epic> getEpicById(@PathVariable UUID id) {
-        Epic epic = epicService.getEpicById(id);
-        return ResponseEntity.ok(epic);
+    public ResponseEntity<EpicResponse> getEpicById(@PathVariable UUID id) {
+        return ResponseEntity.ok(EpicMapper.toResponse(epicService.getEpicById(id)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Epic>> getAllEpics() {
-        List<Epic> epics = epicService.getAllEpics();
-        return ResponseEntity.ok(epics);
+    public ResponseEntity<Page<EpicResponse>> getAllEpics(Pageable pageable) {
+        Page<EpicResponse> responses = epicService.getAllEpics(pageable).map(EpicMapper::toResponse);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<Epic>> getProjectEpics(@PathVariable UUID projectId) {
-        List<Epic> epics = epicService.getProjectEpics(projectId);
-        return ResponseEntity.ok(epics);
+    public ResponseEntity<Page<EpicResponse>> getProjectEpics(@PathVariable UUID projectId, Pageable pageable) {
+        Page<EpicResponse> responses =
+                epicService.getProjectEpics(projectId, pageable).map(EpicMapper::toResponse);
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Epic> updateEpic(@PathVariable UUID id, @Valid @RequestBody UpdateEpicRequest request) {
-        Epic epic = epicService.updateEpic(id, request.title(), request.description());
-        return ResponseEntity.ok(epic);
+    public ResponseEntity<EpicResponse> updateEpic(
+            @PathVariable UUID id, @Valid @RequestBody UpdateEpicRequest request) {
+        Epic epic = epicService.updateEpic(id, request);
+        return ResponseEntity.ok(EpicMapper.toResponse(epic));
     }
 
     @DeleteMapping("/{id}")

@@ -1,20 +1,22 @@
 package universityproject.taskmanager.epic.service;
 
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import universityproject.taskmanager.epic.dto.CreateEpicRequest;
+import universityproject.taskmanager.epic.dto.UpdateEpicRequest;
 import universityproject.taskmanager.epic.model.Epic;
 
 public interface EpicService {
+    Epic createEpic(CreateEpicRequest request);
 
-    Epic createEpic(String title, String description, UUID projectId);
-
-    Epic updateEpic(UUID epicId, String title, String description);
+    Epic updateEpic(UUID epicId, UpdateEpicRequest request);
 
     void deleteEpic(UUID epicId);
 
     Epic getEpicById(UUID epicId);
 
-    List<Epic> getProjectEpics(UUID projectId);
+    Page<Epic> getProjectEpics(UUID projectId, Pageable pageable);
 
-    List<Epic> getAllEpics();
+    Page<Epic> getAllEpics(Pageable pageable);
 }

@@ -1,16 +1,17 @@
 package universityproject.taskmanager.epic.service;
 
-import static java.util.Objects.nonNull;
-
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import universityproject.taskmanager.epic.dto.CreateEpicRequest;
+import universityproject.taskmanager.epic.dto.UpdateEpicRequest;
 import universityproject.taskmanager.epic.model.Epic;
 import universityproject.taskmanager.epic.repository.EpicRepository;
+import universityproject.taskmanager.exception.EpicNotFoundException;
+import universityproject.taskmanager.exception.ProjectNotFoundException;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.repository.ProjectRepository;
 
@@ -23,15 +24,14 @@ public class EpicServiceDefault implements EpicService {
 
     @Override
     @Transactional
-    public Epic createEpic(String title, String description, UUID projectId) {
+    public Epic createEpic(CreateEpicRequest request) {
         Project project = projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found"));
+                .findById(request.projectId())
+                .orElseThrow(() -> new ProjectNotFoundException(request.projectId()));
 
         Epic epic = Epic.builder()
-                .title(title)
-                .description(description)
+                .title(request.title())
+                .description(request.description())
                 .project(project)
                 .build();
 
@@ -40,19 +40,14 @@ public class EpicServiceDefault implements EpicService {
 
     @Override
     @Transactional
-    public Epic updateEpic(UUID epicId, String title, String description) {
-        Epic epic = epicRepository
-                .findById(epicId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic with id " + epicId + " not found"));
+    public Epic updateEpic(UUID epicId, UpdateEpicRequest request) {
+        Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new EpicNotFoundException(epicId));
 
-        if (nonNull(title)) {
-            epic.setTitle(title);
+        if (request.title() != null && !request.title().isBlank()) {
+            epic.setTitle(request.title());
         }
 
-        if (nonNull(description)) {
-            epic.setDescription(description);
-        }
+        epic.setDescription(request.description());
 
         return epicRepository.save(epic);
     }
@@ -60,30 +55,25 @@ public class EpicServiceDefault implements EpicService {
     @Override
     @Transactional
     public void deleteEpic(UUID epicId) {
-        if (!epicRepository.existsById(epicId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic with id " + epicId + " not found");
-        }
-        epicRepository.deleteById(epicId);
+        Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new EpicNotFoundException(epicId));
+        epicRepository.delete(epic);
     }
 
     @Override
     public Epic getEpicById(UUID epicId) {
-        return epicRepository
-                .findById(epicId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic with id " + epicId + " not found"));
+        return epicRepository.findById(epicId).orElseThrow(() -> new EpicNotFoundException(epicId));
     }
 
     @Override
-    public List<Epic> getProjectEpics(UUID projectId) {
+    public Page<Epic> getProjectEpics(UUID projectId, Pageable pageable) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project with id " + projectId + " not found");
+            throw new ProjectNotFoundException(projectId);
         }
-        return epicRepository.findByProjectId(projectId);
+        return epicRepository.findByProjectId(projectId, pageable);
     }
 
     @Override
-    public List<Epic> getAllEpics() {
-        return epicRepository.findAll();
+    public Page<Epic> getAllEpics(Pageable pageable) {
+        return epicRepository.findAll(pageable);
     }
 }
