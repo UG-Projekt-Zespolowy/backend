@@ -1,5 +1,7 @@
 package universityproject.taskmanager.epic.service;
 
+import static java.util.Objects.nonNull;
+
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +13,6 @@ import universityproject.taskmanager.epic.model.Epic;
 import universityproject.taskmanager.epic.repository.EpicRepository;
 import universityproject.taskmanager.project.model.Project;
 import universityproject.taskmanager.project.repository.ProjectRepository;
-
-import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor

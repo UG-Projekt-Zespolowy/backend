@@ -1,5 +1,7 @@
 package universityproject.taskmanager.project.service;
 
+import static java.util.Objects.nonNull;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,8 +17,6 @@ import universityproject.taskmanager.user.model.User;
 import universityproject.taskmanager.user.repository.UserRepository;
 import universityproject.taskmanager.userproject.model.UserProject;
 import universityproject.taskmanager.userproject.repository.UserProjectRepository;
-
-import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor

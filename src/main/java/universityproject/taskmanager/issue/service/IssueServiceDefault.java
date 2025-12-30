@@ -1,5 +1,7 @@
 package universityproject.taskmanager.issue.service;
 
+import static java.util.Objects.nonNull;
+
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,6 @@ import universityproject.taskmanager.issue.repository.IssueRepository;
 import universityproject.taskmanager.project.repository.ProjectRepository;
 import universityproject.taskmanager.user.model.User;
 import universityproject.taskmanager.user.repository.UserRepository;
-
-import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
