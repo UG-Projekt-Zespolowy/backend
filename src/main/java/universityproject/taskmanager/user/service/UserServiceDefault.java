@@ -1,5 +1,6 @@
 package universityproject.taskmanager.user.service;
 
+import io.micrometer.common.util.StringUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,15 +44,15 @@ public class UserServiceDefault implements UserService {
     public User updateUser(UUID id, UpdateUserRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-        if (request.name() != null && !request.name().isBlank()) {
+        if (StringUtils.isNotBlank(request.name())) {
             user.setName(request.name());
         }
 
-        if (request.keycloakId() != null && !request.keycloakId().isBlank()) {
+        if (StringUtils.isNotBlank(request.keycloakId())) {
             user.setKeycloakId(request.keycloakId());
         }
 
-        if (request.username() != null && !request.username().isBlank()) {
+        if (StringUtils.isNotBlank(request.username())) {
             if (!user.getUsername().equals(request.username()) && userRepository.existsByUsername(request.username())) {
                 throw new UserConflictException("Username " + request.username() + " already exists");
             }

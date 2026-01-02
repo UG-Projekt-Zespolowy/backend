@@ -1,5 +1,8 @@
 package universityproject.taskmanager.issue.service;
 
+import static java.util.Objects.nonNull;
+
+import io.micrometer.common.util.StringUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,11 +45,11 @@ public class IssueServiceDefault implements IssueService {
                 .reporter(reporter)
                 .build();
 
-        if (request.assigneeId() != null) {
+        if (nonNull(request.assigneeId())) {
             issue.setAssignee(userRepository.findById(request.assigneeId()).orElse(null));
         }
 
-        if (request.epicId() != null) {
+        if (nonNull(request.epicId())) {
             issue.setEpic(epicRepository
                     .findById(request.epicId())
                     .orElseThrow(() -> new ResourceNotFoundException("Epic not found")));
@@ -60,14 +63,14 @@ public class IssueServiceDefault implements IssueService {
     public Issue updateIssue(UUID issueId, UpdateIssueRequest request) {
         Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new IssueNotFoundException(issueId));
 
-        if (request.title() != null && !request.title().isBlank()) {
+        if (StringUtils.isNotBlank(request.title())) {
             issue.setTitle(request.title());
         }
         issue.setDescription(request.description());
         issue.setStoryPoint(request.storyPoint());
         issue.setStatus(request.status());
 
-        if (request.assigneeId() != null) {
+        if (nonNull(request.assigneeId())) {
             User assignee = userRepository
                     .findById(request.assigneeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));

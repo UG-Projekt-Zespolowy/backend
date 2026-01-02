@@ -1,7 +1,6 @@
 package universityproject.taskmanager.project.service;
 
-import static java.util.Objects.nonNull;
-
+import io.micrometer.common.util.StringUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +27,7 @@ public class ProjectServiceDefault implements ProjectService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public Project createProject(String name, String description, UUID ownerId) {
         User owner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException(ownerId));
 
@@ -46,21 +46,23 @@ public class ProjectServiceDefault implements ProjectService {
     }
 
     @Override
+    @Transactional
     public Project updateProject(UUID projectId, String name, String description) {
         Project project =
                 projectRepository.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
 
-        if (nonNull(name)) {
+        if (StringUtils.isNotBlank(name)) {
             project.setName(name);
         }
-        if (nonNull(description)) {
+        if (StringUtils.isNotBlank(description)) {
             project.setDescription(description);
         }
 
-        return project;
+        return projectRepository.save(project);
     }
 
     @Override
+    @Transactional
     public void deleteProject(UUID projectId) {
         if (!projectRepository.existsById(projectId)) {
             throw new ProjectNotFoundException(projectId);

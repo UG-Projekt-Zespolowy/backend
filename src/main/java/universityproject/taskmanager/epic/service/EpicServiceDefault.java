@@ -1,5 +1,6 @@
 package universityproject.taskmanager.epic.service;
 
+import io.micrometer.common.util.StringUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,7 +44,7 @@ public class EpicServiceDefault implements EpicService {
     public Epic updateEpic(UUID epicId, UpdateEpicRequest request) {
         Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new EpicNotFoundException(epicId));
 
-        if (request.title() != null && !request.title().isBlank()) {
+        if (StringUtils.isNotBlank(request.title())) {
             epic.setTitle(request.title());
         }
 

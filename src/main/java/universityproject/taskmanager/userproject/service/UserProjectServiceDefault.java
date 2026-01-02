@@ -25,6 +25,7 @@ public class UserProjectServiceDefault implements UserProjectService {
     private final ProjectRepository projectRepository;
 
     @Override
+    @Transactional
     public UserProject addUserToProject(UUID userId, UUID projectId, ProjectRole role, Boolean isOwner) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -45,23 +46,25 @@ public class UserProjectServiceDefault implements UserProjectService {
     }
 
     @Override
+    @Transactional
     public UserProject updateUserRole(UUID userId, UUID projectId, ProjectRole role) {
         UserProject userProject = userProjectRepository
                 .findByUserIdAndProjectId(userId, projectId)
                 .orElseThrow(() -> new UserProjectNotFoundException(userId, projectId));
 
         userProject.setRole(role);
-        return userProject;
+        return userProjectRepository.save(userProject);
     }
 
     @Override
+    @Transactional
     public void removeUserFromProject(UUID userId, UUID projectId) {
         UserProject userProject = userProjectRepository
                 .findByUserIdAndProjectId(userId, projectId)
                 .orElseThrow(() -> new UserProjectNotFoundException(userId, projectId));
 
         if (userProject.getIsOwner()) {
-            throw new CannotRemoveProjectOwnerException();
+            throw new CannotRemoveProjectOwnerException(userId, projectId);
         }
 
         userProjectRepository.delete(userProject);

@@ -24,6 +24,13 @@ public class Epic {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
+    @JoinColumn(
+            name = "project_id",
+            nullable = false,
+            foreignKey =
+                    @ForeignKey(
+                            name = "fk_epic_project",
+                            foreignKeyDefinition =
+                                    "FOREIGN KEY (project_id) REFERENCES task_manager_project(id) ON DELETE CASCADE"))
     private Project project;
 }
