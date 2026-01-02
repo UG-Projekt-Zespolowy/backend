@@ -14,6 +14,6 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
 
     Page<Issue> findByAssigneeId(UUID assigneeId, Pageable pageable);
 
-    @Query("SELECT i FROM Issue i JOIN FETCH i.epic e JOIN FETCH e.project WHERE e.project.id = :projectId")
+    @Query("SELECT i FROM Issue i JOIN i.epic e JOIN e.project WHERE e.project.id = :projectId")
     Page<Issue> findByProjectId(UUID projectId, Pageable pageable);
 }

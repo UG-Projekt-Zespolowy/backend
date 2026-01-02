@@ -10,6 +10,6 @@ import universityproject.taskmanager.epic.model.Epic;
 
 @Repository
 public interface EpicRepository extends JpaRepository<Epic, UUID> {
-    @Query("SELECT e FROM Epic e JOIN FETCH e.project WHERE e.project.id = :projectId")
+    @Query("SELECT e FROM Epic e JOIN e.project WHERE e.project.id = :projectId")
     Page<Epic> findByProjectId(UUID projectId, Pageable pageable);
 }
