@@ -20,6 +20,7 @@ import universityproject.taskmanager.user.model.User;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class UserProject {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -1,0 +1,15 @@
+meta {
+  name: GetEpicIssues
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/api/v1/issues/epic/{{epicId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  epicId: 3dec668d-0743-47a6-9541-87764897412a
+}

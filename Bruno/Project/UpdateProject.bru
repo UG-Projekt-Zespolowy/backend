@@ -1,0 +1,22 @@
+meta {
+  name: UpdateProject - Only Name
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:8080/api/v1/projects/{{projectId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Updated Project Name",
+    "description": "Existing description changed"
+  }
+}
+
+vars:pre-request {
+  projectId: replace-with-actual-uuid
+}

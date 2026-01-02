@@ -44,7 +44,13 @@ public class Issue {
     private User assignee;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "epic_id")
+    @JoinColumn(
+            name = "epic_id",
+            foreignKey =
+                    @ForeignKey(
+                            name = "fk_issue_epic",
+                            foreignKeyDefinition =
+                                    "FOREIGN KEY (epic_id) REFERENCES task_manager_epic(id) ON DELETE CASCADE"))
     private Epic epic;
 
     @Column(name = "created_at", nullable = false, updatable = false)

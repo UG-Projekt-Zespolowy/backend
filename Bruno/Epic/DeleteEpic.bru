@@ -1,0 +1,15 @@
+meta {
+  name: DeleteEpic
+  type: http
+  seq: 8
+}
+
+delete {
+  url: http://localhost:8080/api/v1/epics/{{epicId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  epicId: replace-with-uuid
+}

@@ -1,0 +1,16 @@
+meta {
+  name: RemoveUserFromProject
+  type: http
+  seq: 15
+}
+
+delete {
+  url: http://localhost:8080/api/v1/user-projects/projects/{{projectId}}/users/{{userId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  projectId: replace-with-actual-uuid
+  userId: replace-with-actual-uuid
+}
