@@ -21,33 +21,44 @@ public class UserSyncService {
 
     private final UserRepository userRepository;
     private final KeycloakUserExtractor extractor;
+    private final UserSyncCache userSyncCache;
 
     @Transactional
     public void sync(Jwt jwt) {
-        try {
-            var data = extractor.extract(jwt);
-            String keycloakId = data.keycloakId();
+        var data = extractor.extract(jwt);
+        String keycloakId = data.keycloakId();
 
-            log.info("Starting user sync: keycloakId={}, username={}", keycloakId, data.username());
-
-            userRepository
-                    .findByKeycloakId(keycloakId)
-                    .ifPresentOrElse(
-                            existingUser -> {
-                                log.debug("User exists in database: keycloakId={}", keycloakId);
-                                updateUserIfChanged(existingUser, data);
-                            },
-                            () -> {
-                                log.info(
-                                        "User not found in database, creating new user: keycloakId={}, username={}",
-                                        keycloakId,
-                                        data.username());
-                                createNewUser(data);
-                            });
-        } catch (Exception e) {
-            log.error("Error during user sync", e);
-            throw e;
+        if (userSyncCache.isRecentlySynced(keycloakId)) {
+            log.info("User recently synced, skipping: keycloakId={}", keycloakId);
+            return;
         }
+
+        log.info("Starting user sync: keycloakId={}, username={}", keycloakId, data.username());
+
+        userRepository
+                .findByKeycloakId(keycloakId)
+                .ifPresentOrElse(
+                        existingUser -> syncExistingUser(existingUser, data),
+                        () -> createAndSyncNewUser(data));
+    }
+
+    private void syncExistingUser(User existingUser, KeycloakUserData data) {
+        log.info("User exists in database: keycloakId={}", data.keycloakId());
+        boolean changed = updateUserIfChanged(existingUser, data);
+        if (changed) {
+            userSyncCache.evict(data.keycloakId());
+        } else {
+            userSyncCache.markAsSynced(data.keycloakId());
+        }
+    }
+
+    private void createAndSyncNewUser(KeycloakUserData data) {
+        log.info(
+                "User not found in database, creating new user: keycloakId={}, username={}",
+                data.keycloakId(),
+                data.username());
+        createNewUser(data);
+        userSyncCache.markAsSynced(data.keycloakId());
     }
 
     private boolean updateUserIfChanged(User user, KeycloakUserData data) {
