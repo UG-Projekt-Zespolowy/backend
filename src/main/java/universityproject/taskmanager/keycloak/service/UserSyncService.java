@@ -38,8 +38,7 @@ public class UserSyncService {
         userRepository
                 .findByKeycloakId(keycloakId)
                 .ifPresentOrElse(
-                        existingUser -> syncExistingUser(existingUser, data),
-                        () -> createAndSyncNewUser(data));
+                        existingUser -> syncExistingUser(existingUser, data), () -> createAndSyncNewUser(data));
     }
 
     private void syncExistingUser(User existingUser, KeycloakUserData data) {
