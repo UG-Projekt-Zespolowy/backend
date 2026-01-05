@@ -10,6 +10,8 @@ import universityproject.taskmanager.user.model.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByKeycloakId(String keycloakId);
+
     boolean existsByUsername(String username);
 
     boolean existsByKeycloakId(String keycloakId);
