@@ -1,35 +1,17 @@
 spring:
   application:
     name: backend
-
-  profiles:
-    active: prod
-
   cache:
     type: caffeine
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=10m
-
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
     open-in-view: false
-
   security:
     oauth2:
       resourceserver:
         jwt:
           jwk-set-uri: http://keycloak:8000/realms/project-realm/protocol/openid-connect/certs
-
-logging:
-  level:
-    root: INFO
-    u.taskmanager: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor: INFO
-    org.springframework.web: INFO
-    org.springframework.security: INFO
 
 management:
   endpoints:
