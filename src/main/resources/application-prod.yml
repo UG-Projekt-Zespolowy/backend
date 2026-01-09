@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+logging:
+  level:
+    root: WARN
+    u.taskmanager: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: always
