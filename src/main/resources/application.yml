@@ -1,6 +1,8 @@
 spring:
   application:
     name: backend
+  profiles:
+    default: default
   cache:
     type: caffeine
     caffeine:
