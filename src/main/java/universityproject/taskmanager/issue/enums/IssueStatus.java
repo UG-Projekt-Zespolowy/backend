@@ -10,7 +10,8 @@ public enum IssueStatus {
     IN_PROGRESS("In Progress"),
     READY_FOR_REVIEW("Ready for Review"),
     DONE("Done"),
-    CLOSED("Closed");
+    CLOSED("Closed"),
+    BACKLOG("Backlog");
 
     private final String displayName;
 }
