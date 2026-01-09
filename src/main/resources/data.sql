@@ -1,3 +1,10 @@
+-- To prevent errors when restarting the application, we clear existing data
+DELETE FROM public.task_manager_user_project;
+DELETE FROM public.task_manager_issue;
+DELETE FROM public.task_manager_user;
+DELETE FROM public.task_manager_epic;
+DELETE FROM public.task_manager_project;
+
 INSERT INTO public.task_manager_project (id, created_at, description, name) VALUES 
 ('2c78e0a2-e2ab-4da4-a98f-08ff4b754631', '2026-01-09 19:36:17.976727', 'Web-based system for managing tasks and teams using Spring Boot and React', 'Task Management Platform'),
 ('649ce3a8-27f0-4173-81f1-90b19c6a5fbc', '2026-01-09 19:37:06.260814', 'Online store with product catalog and payments', 'E-commerce Platform'),
